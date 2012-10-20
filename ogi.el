@@ -55,7 +55,7 @@
 ;;;###autoload
 (defun ogi-insert (project)
   "Insert (new) issues for PROJECT under the current entry."
-  (interactive "MGet issues for:")
+  (interactive "MGet issues for: ")
   (goto-char (point-max))
   (mapc (lambda (issue)
           (let ((id (number-to-string (ogiprop issue id))))
