@@ -52,28 +52,30 @@
   "From alist OBJ get the value of PROP."
   `(cdr (assq ',prop ,obj)))
 
+(defun ogi-insert-entry (issue)
+  "Insert a single issue into the current buffer, unless it exists."
+  (let ((id (number-to-string (ogiprop issue id))))
+    (unless (org-find-entry-with-id id)
+      (org-insert-heading-after-current)
+      (insert (ogiprop issue title))
+      (newline)
+      (insert (ogiprop issue body))
+      (fill-paragraph)
+      (org-todo (if (string= (ogiprop issue state) "closed")
+                    'done
+                  "TODO"))
+      (org-set-tags-to (mapcar (lambda (itm)
+                                 (replace-regexp-in-string
+                                  "-" "_" (ogiprop itm name)))
+                               (ogiprop issue labels)))
+      (org-entry-put (point) "ID" id))))
+
 ;;;###autoload
 (defun ogi-insert (project)
   "Insert (new) issues for PROJECT under the current entry."
   (interactive "MGet issues for: ")
   (goto-char (point-max))
-  (mapc (lambda (issue)
-          (let ((id (number-to-string (ogiprop issue id))))
-            (unless (org-find-entry-with-id id)
-              (org-insert-heading-after-current)
-              (insert (ogiprop issue title))
-              (newline)
-              (insert (ogiprop issue body))
-              (fill-paragraph)
-              (org-todo (if (string= (ogiprop issue state) "closed")
-                            'done
-                          "TODO"))
-              (org-set-tags-to (mapcar (lambda (itm)
-                                         (replace-regexp-in-string
-                                          "-" "_" (ogiprop itm name)))
-                                       (ogiprop issue labels)))
-              (org-entry-put (point) "ID" id))))
-        (ogi-get project)))
+  (mapc #'ogi-insert-entry (ogi-get project)))
 
 (provide 'ogi)
 
